@@ -2,31 +2,35 @@
 
 import { useState } from "react";
 
-type LikeButtonProps = {
+export default function LikeButton({
+  postId,
+  initialLikes,
+}: {
+  postId: number;
   initialLikes: number;
-};
-
-export default function LikeButton({ initialLikes }: LikeButtonProps) {
-  const [liked, setLiked] = useState(false);
+}) {
   const [count, setCount] = useState(initialLikes);
+  const [liked, setLiked] = useState(false);
 
-  const handleClick = () => {
-    setLiked((prev) => !prev);
-    setCount((prev) => (liked ? prev - 1 : prev + 1));
-  };
+  async function handleClick() {
+    setLiked(!liked);
+    setCount((prev) => prev + (liked ? -1 : 1));
+
+    await fetch(`/api/posts/${postId}/likes`, {
+      method: "POST",
+    });
+  }
 
   return (
     <button
       onClick={handleClick}
       style={{
-        border: "1px solid",
-        borderColor: liked ? "#ec4899" : "#e5e7eb",
         background: liked ? "#fce7f3" : "transparent",
-        color: liked ? "#ec4899" : "#6b7280",
+        border: "1px solid #e5e7eb",
         borderRadius: "999px",
         padding: "0.3rem 0.7rem",
         cursor: "pointer",
-        transition: "all 0.2s ease",
+        color: liked ? "#ec4899" : "#6b7280",
       }}
     >
       {liked ? "❤️" : "🤍"} {count}

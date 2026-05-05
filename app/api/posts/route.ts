@@ -1,23 +1,31 @@
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getPosts, createPost } from "@/lib/store";
 
 export async function GET() {
-  return NextResponse.json(getPosts());
-}
+  try {
+    const posts = await prisma.post.findMany({
+      include: { author: true },
+      orderBy: { createdAt: "desc" },
+    });
 
-export async function POST(req: Request) {
-  const body = await req.json();
+    const formatted = posts.map((p) => ({
+      id: p.id,
+      content: p.content,
+      likes: p.likes,
+      createdAt: p.createdAt,
+      author: p.author.name,
+      handle: p.author.handle,
+      authorId: p.author.id,
+    }));
 
-  const { content, author, handle } = body;
+    return NextResponse.json(formatted);
+  } catch (error) {
+    console.error("API /posts error:", error);
 
-  if (!content || !author || !handle) {
+    // 🔥 IMPORTANT : toujours renvoyer du JSON
     return NextResponse.json(
-      { error: "Champs manquants" },
-      { status: 400 }
+      { error: "Erreur serveur Prisma" },
+      { status: 500 }
     );
   }
-
-  const newPost = createPost({ content, author, handle });
-
-  return NextResponse.json(newPost, { status: 201 });
 }

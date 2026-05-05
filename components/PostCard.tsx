@@ -36,7 +36,7 @@ export default function PostCard({
       </Link>
 
       <div className="post-footer">
-        <LikeButton initialLikes={likes} />
+        <LikeButton postId={id} initialLikes={likes} />
       </div>
     </div>
   );
