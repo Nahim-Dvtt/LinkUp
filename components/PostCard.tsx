@@ -1,12 +1,12 @@
 import Link from "next/link";
 
 type PostCardProps = {
-  author?: string;
-  handle?: string;
+  id: number;
+  author: string;
+  handle: string;
   content: string;
   likes: number;
   time: string;
-  id: string;
 };
 
 import LikeButton from "@/components/LikeButton";

@@ -3,22 +3,22 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
-) {
-  const post = await prisma.post.findUnique({
-    where: { id: Number(params.id) },
-  });
-
-  if (!post) {
-    return NextResponse.json(null, { status: 404 });
+  context: {
+    params: Promise<{ id: string }>;
   }
+) {
+  const { id } = await context.params;
 
-  const updated = await prisma.post.update({
-    where: { id: post.id },
+  const post = await prisma.post.update({
+    where: {
+      id: Number(id),
+    },
     data: {
-      likes: post.likes + 1,
+      likes: {
+        increment: 1,
+      },
     },
   });
 
-  return NextResponse.json(updated);
+  return NextResponse.json(post);
 }

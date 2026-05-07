@@ -1,39 +1,62 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+type Props = {
+  postId: number;
+  initialLikes: number;
+};
 
 export default function LikeButton({
   postId,
   initialLikes,
-}: {
-  postId: number;
-  initialLikes: number;
-}) {
-  const [count, setCount] = useState(initialLikes);
+}: Props) {
+  const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
 
-  async function handleClick() {
-    setLiked(!liked);
-    setCount((prev) => prev + (liked ? -1 : 1));
+  const router = useRouter();
 
-    await fetch(`/api/posts/${postId}/likes`, {
-      method: "POST",
-    });
+  async function handleLike() {
+    try {
+      const res = await fetch(
+        `/api/posts/${postId}/likes`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!res.ok) {
+        return;
+      }
+
+      const data = await res.json();
+
+      setLikes(data.likes);
+
+      setLiked(true);
+
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
     <button
-      onClick={handleClick}
+      onClick={handleLike}
       style={{
-        background: liked ? "#fce7f3" : "transparent",
+        background: liked
+          ? "#fce7f3"
+          : "transparent",
+        color: liked ? "#ec4899" : "#6b7280",
         border: "1px solid #e5e7eb",
         borderRadius: "999px",
-        padding: "0.3rem 0.7rem",
+        padding: "0.4rem 0.8rem",
         cursor: "pointer",
-        color: liked ? "#ec4899" : "#6b7280",
       }}
     >
-      {liked ? "❤️" : "🤍"} {count}
+      {liked ? "❤️" : "🤍"} {likes}
     </button>
   );
 }

@@ -1,99 +1,116 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+
+type User = {
+  id: number;
+  name: string;
+};
 
 export default function NewPostForm() {
   const [content, setContent] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
-  const [authorId, setAuthorId] = useState<number | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [authorId, setAuthorId] = useState<number>(1);
+
+  const [isPending, startTransition] = useTransition();
+
   const router = useRouter();
 
+  // 🔥 charger les users
   useEffect(() => {
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data) => {
+    async function loadUsers() {
+      try {
+        const res = await fetch("/api/users");
+
+        const data = await res.json();
+
         setUsers(data);
-        if (data.length > 0) setAuthorId(data[0].id);
-      });
+
+        if (data.length > 0) {
+          setAuthorId(data[0].id);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadUsers();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!content || !authorId) return;
 
-    await fetch("/api/posts", {
-      method: "POST",
-      body: JSON.stringify({ content, authorId }),
-      headers: { "Content-Type": "application/json" },
-    });
+    if (!content.trim()) {
+      return;
+    }
 
-    setContent("");
-    router.refresh();
+    try {
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content,
+          authorId,
+        }),
+      });
+
+      // 🔥 debug ultra important
+      if (!res.ok) {
+const data = await res.json();
+console.log(data);
+        return;
+      }
+
+      setContent("");
+
+      // 🔥 force refresh
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      style={{
-        background: "white",
-        padding: "1.2rem",
-        borderRadius: "16px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-        marginBottom: "1.5rem",
-      }}
+      className="new-post-form"
     >
       <textarea
+        placeholder="Quoi de neuf ? ✨"
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Quoi de neuf ? "
-        style={{
-          width: "100%",
-          border: "none",
-          outline: "none",
-          resize: "none",
-          fontSize: "1rem",
-          marginBottom: "1rem",
-        }}
+        className="new-post-textarea"
       />
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "1rem",
-        }}
-      >
+      <div className="new-post-bottom">
         <select
-          value={authorId ?? ""}
-          onChange={(e) => setAuthorId(Number(e.target.value))}
-          style={{
-            border: "1px solid #e5e7eb",
-            borderRadius: "8px",
-            padding: "0.4rem 0.6rem",
-          }}
+          value={authorId}
+          onChange={(e) =>
+            setAuthorId(Number(e.target.value))
+          }
+          className="new-post-select"
         >
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
+          {users.map((user) => (
+            <option
+              key={user.id}
+              value={user.id}
+            >
+              {user.name}
             </option>
           ))}
         </select>
 
         <button
           type="submit"
-          style={{
-            background: "#6d28d9",
-            color: "white",
-            border: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "999px",
-            cursor: "pointer",
-            fontWeight: "500",
-          }}
+          className="publish-btn"
+          disabled={isPending}
         >
-          Publier
+          {isPending ? "Publication..." : "Publier"}
         </button>
       </div>
     </form>

@@ -4,28 +4,67 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const posts = await prisma.post.findMany({
-      include: { author: true },
-      orderBy: { createdAt: "desc" },
+      include: {
+        author: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    const formatted = posts.map((p) => ({
-      id: p.id,
-      content: p.content,
-      likes: p.likes,
-      createdAt: p.createdAt,
-      author: p.author.name,
-      handle: p.author.handle,
-      authorId: p.author.id,
-    }));
-
-    return NextResponse.json(formatted);
+    return NextResponse.json(posts);
   } catch (error) {
-    console.error("API /posts error:", error);
+    console.error(error);
 
-    // 🔥 IMPORTANT : toujours renvoyer du JSON
     return NextResponse.json(
-      { error: "Erreur serveur Prisma" },
-      { status: 500 }
+      {
+        error: "Erreur récupération posts",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    console.log("BODY:", body);
+
+    const { content, authorId } = body;
+
+    // 🔥 validation
+    if (!content || !authorId) {
+      return NextResponse.json(
+        {
+          error: "content et authorId requis",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const post = await prisma.post.create({
+      data: {
+        content,
+        authorId: Number(authorId),
+      },
+    });
+
+    return NextResponse.json(post);
+  } catch (error) {
+    console.error("POST ERROR:", error);
+
+    return NextResponse.json(
+      {
+        error: "Erreur serveur",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
