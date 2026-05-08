@@ -7,6 +7,7 @@ type PostCardProps = {
   content: string;
   likes: number;
   time: string;
+  authorId: number;
 };
 
 import LikeButton from "@/components/LikeButton";
@@ -23,9 +24,12 @@ export default function PostCard({
     <div className="post-card">
       <div className="post-header">
         <div>
-          <Link href={`/posts/${id}`} style={{ textDecoration: "none", color: "inherit" }}>
-            <span>{author ?? "Anonymous"}</span>
-          </Link>
+        <Link
+          href={`/profile/${id}`}
+          className="author-link"
+        >
+        <strong>{author}</strong>
+        </Link>
           {handle && <span className="handle">{handle}</span>}
         </div>
         <span className="time">{time}</span>

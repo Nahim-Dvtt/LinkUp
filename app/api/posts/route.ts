@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
+// 🔹 GET ALL POSTS
 export async function GET() {
   try {
     const posts = await prisma.post.findMany({
@@ -27,19 +29,32 @@ export async function GET() {
   }
 }
 
+// 🔹 CREATE POST
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    // 🔥 session utilisateur
+    const session = await auth();
 
-    console.log("BODY:", body);
-
-    const { content, authorId } = body;
-
-    // 🔥 validation
-    if (!content || !authorId) {
+    // 🔥 non connecté
+    if (!session?.user?.email) {
       return NextResponse.json(
         {
-          error: "content et authorId requis",
+          error: "Non autorisé",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const body = await req.json();
+
+    const { content } = body;
+
+    if (!content) {
+      return NextResponse.json(
+        {
+          error: "Contenu requis",
         },
         {
           status: 400,
@@ -47,20 +62,43 @@ export async function POST(req: Request) {
       );
     }
 
+    // 🔥 retrouver le user Prisma
+    const user = await prisma.user.findUnique({
+      where: {
+        email: session.user.email,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "Utilisateur introuvable",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // 🔥 création post
     const post = await prisma.post.create({
       data: {
         content,
-        authorId: Number(authorId),
+        authorId: user.id,
+      },
+
+      include: {
+        author: true,
       },
     });
 
     return NextResponse.json(post);
   } catch (error) {
-    console.error("POST ERROR:", error);
+    console.error(error);
 
     return NextResponse.json(
       {
-        error: "Erreur serveur",
+        error: "Erreur création post",
       },
       {
         status: 500,

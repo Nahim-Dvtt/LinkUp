@@ -1,46 +1,76 @@
-import { getUserById } from "@/lib/users";
+import { prisma } from "@/lib/prisma";
+import PostCard from "@/components/PostCard";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{
+    id: string;
+  }>;
 };
 
-export async function generateStaticParams() {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: String(i + 1),
-  }));
-}
+export default async function ProfilePage({
+  params,
+}: Props) {
+  const { id } = await params;
 
-export default async function ProfileDetailPage({ params }: Props) {
-  const user = await getUserById(Number(params.id));
+  const user = await prisma.user.findUnique({
+    where: {
+      id: Number(id),
+    },
+    include: {
+      posts: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
 
   if (!user) {
     return (
-      <div className="profile">
-        <p>Utilisateur introuvable 😕</p>
+      <div className="feed-page">
+        <div className="feed-container">
+          <p>Utilisateur introuvable 😕</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="profile">
-      <div className="profile-card">
-        <div className="profile-top">
-          <div className="avatar">
-            {user.name?.charAt(0)}
+    <div className="feed-page">
+      <div className="feed-container">
+        <div className="profile-card">
+          <div className="profile-top">
+            <div className="avatar">
+              {user.name.charAt(0)}
+            </div>
+
+            <div>
+              <h2>{user.name}</h2>
+              <p className="handle">
+                {user.handle}
+              </p>
+            </div>
           </div>
 
-          <div className="profile-info">
-            <h2>{user.name}</h2>
-            <span className="handle">{user.handle}</span>
-          </div>
+          <p className="profile-bio">
+            {user.bio}
+          </p>
         </div>
 
-        <p className="profile-bio">{user.bio}</p>
-
-        <div className="profile-stats">
-          <span>
-            <strong>{user.followers.toLocaleString()}</strong> abonnés
-          </span>
+        <div className="posts-container">
+          {user.posts.map((post) => (
+            <PostCard
+              key={post.id}
+              id={post.id}
+              author={user.name}
+              handle={user.handle}
+              content={post.content}
+              likes={post.likes}
+              time={new Date(
+                post.createdAt
+              ).toLocaleDateString("fr-FR")}
+            />
+          ))}
         </div>
       </div>
     </div>

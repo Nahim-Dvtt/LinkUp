@@ -30,7 +30,13 @@ export default async function Home() {
               handle={post.author.handle}
               content={post.content}
               likes={post.likes}
-              time="À l’instant"
+              authorId={post.author.id}
+              time={new Date(post.createdAt).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+              })}
             />
           ))}
         </div>
