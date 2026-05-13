@@ -1,7 +1,7 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 
 export default auth((req) => {
-  // tu peux laisser vide pour l’instant
+  // vide pour l’instant
 });
 
 export const config = {
