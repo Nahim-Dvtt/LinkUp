@@ -1,61 +1,46 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
+
+import { createPostAction } from "@/app/actions/posts";
+
+const initialState = {
+  error: "",
+  success: false,
+};
 
 export default function NewPostForm() {
-  const [content, setContent] = useState("");
-
-  const [isPending, startTransition] =
-    useTransition();
-
-  const router = useRouter();
-
-  async function handleSubmit(
-    e: React.FormEvent
-  ) {
-    e.preventDefault();
-
-    if (!content.trim()) return;
-
-    await fetch("/api/posts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content,
-      }),
-    });
-
-    setContent("");
-
-    startTransition(() => {
-      router.refresh();
-    });
-  }
+  const [state, formAction, pending] =
+    useActionState(
+      createPostAction,
+      initialState
+    );
 
   return (
     <form
-      onSubmit={handleSubmit}
+      action={formAction}
       className="new-post-form"
     >
       <textarea
-        value={content}
-        onChange={(e) =>
-          setContent(e.target.value)
-        }
+        name="content"
         placeholder="Quoi de neuf ? ✨"
         className="new-post-textarea"
       />
 
-      <div className="new-post-bottom">
+      {/* ✅ erreurs */}
+      {state?.error && (
+        <p className="form-error">
+          {state.error}
+        </p>
+      )}
+
+      <div className="new-post-footer">
         <button
           type="submit"
+          disabled={pending}
           className="publish-btn"
-          disabled={isPending}
         >
-          {isPending
+          {pending
             ? "Publication..."
             : "Publier"}
         </button>
