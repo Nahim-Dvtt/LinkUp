@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import PostCard from "@/components/PostCard";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{
     id: string;
