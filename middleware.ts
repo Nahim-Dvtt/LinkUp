@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 
 export default auth((req) => {
-  return;
+  // middleware de protection simple
 });
 
 export const config = {
