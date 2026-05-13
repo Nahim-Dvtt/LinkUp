@@ -1,13 +1,13 @@
 {
-  "name": "nextjs-session1",
+  "name": "linkup",
   "version": "0.1.0",
   "private": true,
 
   "scripts": {
     "dev": "next dev",
-    "build": "next build --debug",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "postinstall": "prisma generate"
   },
 
@@ -16,10 +16,9 @@
     "@prisma/client": "^5.22.0",
     "next": "16.2.4",
     "next-auth": "^5.0.0-beta.31",
-    "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "ts-node": "^10.9.2",
+    "prisma": "^5.22.0",
     "zod": "^4.4.3"
   },
 
@@ -30,9 +29,5 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "typescript": "^5"
-  },
-
-  "prisma": {
-
   }
 }
