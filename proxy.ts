@@ -1,8 +1,4 @@
-import { auth } from "@/lib/auth";
-
-export default auth((req) => {
-  // vide pour l’instant
-});
+export { auth as middleware } from "@/lib/auth";
 
 export const config = {
   matcher: ["/profile/:path*"],
